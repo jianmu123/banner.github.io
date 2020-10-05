@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title> -->
+    <script src="move.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      /* 设置outer样式 */
+
+      #outer {
+        /* 宽度会由于图片改变 */
+        width: 740px;
+        height: 405px;
+        /* 居中 */
+        margin: 50px auto;
+        background-color: greenyellow;
+        padding: 10px 0;
+        position: relative;
+        overflow: hidden;
+      }
+      #image {
+        list-style: none;
+        /* 设置ul宽度，要放下5张宽度720的图片必须要3600 
+          写死了不好 ，因为添加删除图片会编号，所以需要用js*/
+        /* width: 3700px; */
+        position: absolute;
+      }
+      /* 设置图片中的li */
+      #image li {
+        float: left;
+        /* 设置左右外边距 */
+        margin: 0 10px;
+      }
+      /* 设置导航按钮 */
+      #navDiv {
+        position: absolute;
+        bottom: 15px;
+        /* 设置导航栏居中 
+              outer宽度：740
+              navDiv宽度：（15+5+5）*5=125
+              所以lef=740-125=615/2=307.5
+          */
+        /* 但是写死了不好,所以写js */
+        /* left: 307px; */
+      }
+      #navDiv a {
+        /* display: inline-block; */
+        float: left;
+        width: 15px;
+        height: 15px;
+        background-color: red;
+        opacity: 0.7;
+        /* 设置ie8的兼容透明 */
+        filter: alpha(opacity=70);
+        margin: 0 5px;
+        border-radius: 10px;
+      }
+      /* 鼠标经过变色 */
+      #navDiv a:hover {
+        background-color: #cccccc;
+      }
+    </style>
+
+    <script>
+      window.onload = function () {
+        //onload方法使js代码在页面加载完成后执行
+        // 根据图片数量来自动调整ul宽度
+        //首先获取ul的id
+        var imgeList = document.getElementById("image");
+        //然后获取ul中img的数量
+        var imgeArry = document.getElementsByTagName("img");
+        //最后调整宽度
+        imgeList.style.width = 740 * imgeArry.length + "px";
+        //设置导航栏按钮居中
+        //获取导航栏id
+        var navgDiv = document.getElementById("navDiv");
+        //获取外部盒子outerid
+        var outbox = document.getElementById("outer");
+        //设置left值
+        navgDiv.style.left =
+          (outbox.offsetWidth - navgDiv.offsetWidth) / 2 + "px"; //offset是返回元素的某一项值
+        //设置默认第一个a是被选取状态
+        //默认显示图像的索引，第一个图片索引是0，每张图片都有自己的索引
+        var index = 0;
+        //获取所有的a
+        var allA = document.getElementsByTagName("a");
+        // 设置默认选中第一张的效果
+        allA[index].style.backgroundColor = "#cccccc";
+
+        /* 
+        调用自动切换图片
+        */
+
+        autoChange();
+
+        /*  设置点击哪个显示对应的图片
+        为所有的超链接绑定单击响应函数 */
+        for (var i = 0; i < allA.length; i++) {
+          //为每个超链接添加一个num属性
+          allA[i].num = i;
+          allA[i].onclick = function () {
+            //点击之后关闭前一个定时器,但是注意点击后会关闭它的自动切换，所以还需要再次打开，使用move的回调函数（）
+            clearInterval(timer);
+
+            // this就是获取点击的到底是第几个图片，将他赋给索引
+            index = this.num;
+            //切换图片
+            // imgeList.style.left = -740 * index + "px";
+            setA();
+
+            //为切换图片添加move动画
+            move(imgeList, "left", -740 * index, 50, function () {
+              //关闭定时器后再次开启定时器
+              autoChange();
+            });
+          };
+        }
+
+        //创建一个方法来将选中的a设为黑色
+        function setA() {
+          //因为在最后一张图中加了第一张重复的图，所以需要时导航点重新在第一个，即设置index=0
+          if (index >= imgeArry.length - 1) {
+            index = 0;
+            imgeList.style.left = 0;
+          }
+          for (var i = 0; i < allA.length; i++) {
+            //这里将遍历所有a给红色，但是是内联样式优先级很高，将会覆盖鼠标经过的hover的效果
+            allA[i].style.backgroundColor = "red";
+            //  allA[i].style.backgroundColor="";//去掉之后将使用样式表的样式（第57行），hover的效果也就可以使用
+          }
+          allA[index].style.backgroundColor = "#cccc";
+        }
+
+        /*
+        创建一个函数，设置图片每隔2s自动切换
+         */
+        var timer;
+        function autoChange() {
+          timer = setInterval(function () {
+            //使索引自增
+            index++;
+            if (index > imgeArry.length - 1) {
+              index = 1;
+            }
+            //执行动画
+            move(imgeList, "left", -740 * index, 60, function () {
+              //修改导航按钮
+              setA();
+            });
+          }, 2000);
+        }
+      };
+    </script>
+  </head>
+
+  <body>
+    <!-- 创建外部盒子 ,作为大容器-->
+    <div id="outer">
+      <!-- 创建一个ul用来放图片 -->
+      <ul id="image">
+        <li><img src="images/1.jpg" alt="" /></li>
+        <li><img src="images/2.jpg" alt="" /></li>
+        <li><img src="images/3.jpg" alt="" /></li>
+        <li><img src="images/4.jpg" alt="" /></li>
+        <li><img src="images/5.jpg" alt="" /></li>
+        <!-- 这里重新插入第一张图片 -->
+        <li><img src="images/1.jpg" alt="" /></li>
+      </ul>
+      <!-- 创建导航按钮 -->
+      <div id="navDiv">
+        <a href="javascript:;"></a>
+        <a href="javascript:;"></a>
+        <a href="javascript:;"></a>
+        <a href="javascript:;"></a>
+        <a href="javascript:;"></a>
+      </div>
+    </div>
+  </body>
+</html>
